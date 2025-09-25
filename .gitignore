@@ -205,3 +205,15 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Ignore everything in the input folder
+/input/*
+
+# Except this specific file
+!/input/owasp.threat-dragon.schema.V2.json
+
+# Ignore everything in the output folder
+/output/*
+
+# Except this specific file
+!/output/.gitkeep
