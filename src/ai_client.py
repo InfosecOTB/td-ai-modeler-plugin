@@ -38,6 +38,7 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
     
     try:
         # Use LiteLLM to call the specified model
+        print(f"Generating threats with {model_name}")
         response = litellm.completion(
             model=model_name,
             messages=[
