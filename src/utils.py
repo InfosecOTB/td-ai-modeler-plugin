@@ -1,7 +1,8 @@
-"""Utility functions for file operations and threat model processing."""
+"""Utility functions for file operations and threat model updates."""
 
 import json
 import shutil
+import uuid
 
 
 def load_json(path: str) -> dict:
@@ -17,7 +18,7 @@ def copy_file(src: str, dest: str) -> None:
 
 
 def update_threats_in_file(file_path: str, threats_data: dict) -> None:
-    """Update threat model with AI-generated threats while preserving formatting."""
+    """Update threat model with AI-generated threats and visual indicators."""
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -38,7 +39,14 @@ def update_threats_in_file(file_path: str, threats_data: dict) -> None:
                 if 'data' not in cell:
                     cell['data'] = {}
                 
-                cell['data']['threats'] = threats_data[cell_id]
+                # Generate UUIDs for threats that don't have them
+                threats_with_uuids = []
+                for threat in threats_data[cell_id]:
+                    if 'id' not in threat or not threat['id']:
+                        threat['id'] = str(uuid.uuid4())
+                    threats_with_uuids.append(threat)
+                
+                cell['data']['threats'] = threats_with_uuids
                 
                 # Update hasOpenThreats if it exists
                 if 'hasOpenThreats' in cell['data']:
@@ -50,6 +58,11 @@ def update_threats_in_file(file_path: str, threats_data: dict) -> None:
                     cell['attrs']['line']['stroke'] = 'red'
                 elif 'attrs' in cell and 'body' in cell['attrs']:
                     cell['attrs']['body']['stroke'] = 'red'
+                elif 'attrs' in cell and 'topLine' in cell['attrs']:
+                    # Handle store shape with topLine and bottomLine
+                    cell['attrs']['topLine']['stroke'] = 'red'
+                    if 'bottomLine' in cell['attrs']:
+                        cell['attrs']['bottomLine']['stroke'] = 'red'
                 elif 'attrs' in cell:
                     # If attrs exists but doesn't have line or body, add stroke to the main attrs
                     if 'stroke' not in cell['attrs']:

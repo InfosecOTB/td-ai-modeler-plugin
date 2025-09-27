@@ -12,13 +12,3 @@ IMPORTANT: Only analyze components that are IN SCOPE. Components marked as "outO
 
 Analyze the model using STRIDE and generate threats for each IN-SCOPE element (cells like actors, processes, stores, flows). For each threat, suggest a mitigation if possible.
 
-Output STRICTLY as a JSON object where keys are cell 'id' values, and values are arrays of threat objects. Each threat object must include:
-- title: str (short title)
-- type: str (one of: "Spoofing", "Tampering", "Repudiation", "Information Disclosure", "Denial of Service", "Elevation of Privilege")
-- description: str (detailed description)
-- severity: str ("High", "Medium", or "Low")
-- status: str ("Open")
-- mitigation: str (suggested mitigation or "No mitigation suggested")
-- modelType: str ("STRIDE")
-
-Do not include threatId, number, or score. Output only the JSON, nothing else.

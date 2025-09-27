@@ -1,14 +1,13 @@
 """
 AI-Powered Threat Modeling Tool
 
-Generates security threats for Threat Dragon models using LLMs and STRIDE framework.
+Generates security threats for Threat Dragon models using LLMs.
 """
 
 import os
 from dotenv import load_dotenv
 from utils import load_json, copy_file, update_threats_in_file
 from ai_client import generate_threats
-from models import ThreatDragonModel
 
 
 def main():
@@ -38,13 +37,7 @@ def main():
     # Update only the threats in the output file, preserving original formatting
     update_threats_in_file(output_model_path, threats_data)
     
-    # Validate the updated model by loading it back
-    try:
-        updated_model = load_json(output_model_path)
-        validated_model = ThreatDragonModel(**updated_model)
-        print(f"Updated and validated model saved to {output_model_path}")
-    except Exception as e:
-        raise ValueError(f"Validation failed: {str(e)}")
+    print(f"Updated model saved to {output_model_path}")
 
 if __name__ == "__main__":
     main()

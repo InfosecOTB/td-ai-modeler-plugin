@@ -1,15 +1,15 @@
 # 🤖 AI-Powered Threat Modeling Tool
 
-An intelligent threat modeling application that uses Large Language Models (LLMs) to automatically generate security threats for Threat Dragon models using the STRIDE framework.
+An intelligent threat modeling application that uses Large Language Models (LLMs) to automatically generate security threats for Threat Dragon models.
 
 ## ✨ Features
 
 - **🤖 AI-Powered Threat Generation**: Uses state-of-the-art LLMs to analyze system components and generate comprehensive security threats
-- **🛡️ STRIDE Framework**: Implements the industry-standard STRIDE methodology (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege)
+- **🛡️ Threat Framework**: Supports multiple threat modeling frameworks including STRIDE, LINDDUN, CIA, and others
 - **🔧 Multi-LLM Support**: Compatible with OpenAI, Anthropic, Google, xAI, Azure OpenAI, Cohere, Hugging Face, and Ollama
 - **📊 Threat Dragon Integration**: Works seamlessly with Threat Dragon JSON models
 - **🎯 Smart Filtering**: Automatically skips out-of-scope components
-- **✅ Data Validation**: Built-in Pydantic validation ensures data integrity
+- **✅ Data Validation**: Built-in Pydantic validation for threat data integrity
 - **🎨 Visual Indicators**: Automatically adds visual cues (red strokes) to components with threats
 
 ## 🚀 Quick Start
@@ -62,24 +62,21 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 
 ## 🔧 Configuration
 
-### Supported LLM Providers
+### Tested LLM Providers
 
 | Provider | Model Example | API Key Variable |
 |----------|---------------|------------------|
-| **OpenAI** | `openai/gpt-4o` | `OPENAI_API_KEY` |
-| **Anthropic** | `anthropic/claude-3-5-sonnet-20241022` | `ANTHROPIC_API_KEY` |
-| **Google** | `gemini/gemini-1.5-pro` | `GOOGLE_API_KEY` |
-| **xAI** | `xai/grok-3-mini-beta` | `XAI_API_KEY` |
-| **Azure OpenAI** | `azure/gpt-4o` | `AZURE_API_KEY` |
-| **Cohere** | `cohere/command-r-plus` | `COHERE_API_KEY` |
-| **Hugging Face** | `huggingface/meta-llama/Llama-2-7b-chat-hf` | `HUGGINGFACE_API_KEY` |
-| **Ollama** | `ollama/llama2` | `OLLAMA_API_BASE` |
+| **OpenAI** | `openai/gpt-5` | `OPENAI_API_KEY` |
+| **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` |
+| **Anthropic** | `anthropic/claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` |
+| **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` |
+| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` |
 
 ### Environment Variables
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `LLM_MODEL_NAME` | LLM model identifier | `openai/gpt-4o` |
+| `LLM_MODEL_NAME` | LLM model identifier | `openai/gpt-5` |
 | `INPUT_THREAT_SCHEMA_JSON` | Threat Dragon schema filename | `owasp.threat-dragon.schema.V2.json` |
 | `INPUT_THREAT_MODEL_JSON` | Input threat model filename | `my-model.json` |
 
@@ -96,7 +93,7 @@ ai-threat-modeling/
 │   ├── owasp.threat-dragon.schema.V2.json
 │   └── your-model.json
 ├── output/                  # Generated output directory
-├── prompt.txt               # STRIDE threat modeling prompt template
+├── prompt.txt               # AI threat modeling prompt template
 ├── env.example              # Environment configuration template
 ├── requirements.txt         # Python dependencies
 └── README.md               # This file
@@ -106,10 +103,10 @@ ai-threat-modeling/
 
 1. **📥 Input Processing**: Loads Threat Dragon schema and model files
 2. **🔍 Component Analysis**: Filters out-of-scope components automatically
-3. **🤖 AI Threat Generation**: Uses LLM to analyze components and generate STRIDE threats
+3. **🤖 AI Threat Generation**: Uses LLM to analyze components and generate threats
 4. **✅ Data Validation**: Ensures all generated threats have required fields
 5. **📝 Model Update**: Updates the threat model while preserving original formatting
-6. **✅ Final Validation**: Validates the updated model structure
+6. **🎨 Visual Updates**: Adds red stroke indicators to components with threats
 
 ## 🛠️ Development
 
@@ -128,7 +125,7 @@ python src/main.py
 - **`main.py`**: Orchestrates the entire threat modeling process
 - **`ai_client.py`**: Handles LLM communication and threat generation
 - **`utils.py`**: File operations and model manipulation utilities
-- **`models.py`**: Pydantic models for data validation
+- **`models.py`**: Pydantic models for threat data validation
 
 
 ## 📄 License

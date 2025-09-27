@@ -1,8 +1,9 @@
-"""AI Client for LLM-powered threat generation using STRIDE framework."""
+"""AI Client for LLM-powered threat generation."""
 
 import json
 from typing import Dict, List
 import litellm
+from models import AIThreatsResponse
 
 
 def filter_out_of_scope_components(model: Dict) -> Dict:
@@ -20,7 +21,7 @@ def filter_out_of_scope_components(model: Dict) -> Dict:
     return filtered_model
 
 def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, List[Dict]]:
-    """Generate AI-powered threats for all in-scope components using STRIDE framework."""
+    """Generate AI-powered threats for all in-scope components."""
     # Filter out components that are out of scope
     filtered_model = filter_out_of_scope_components(model)
     
@@ -38,6 +39,7 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
     
     try:
         # Use LiteLLM to call the specified model
+        litellm.enable_json_schema_validation = True
         print(f"Generating threats with {model_name}")
         response = litellm.completion(
             model=model_name,
@@ -45,25 +47,14 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": "Generate threats for all elements in the model."}
             ],
-            temperature=0.1
+            temperature=0.3,
+            response_format=AIThreatsResponse
         )
         
-        threats_data = json.loads(response.choices[0].message.content)
+        # Parse the response using the Pydantic model
+        ai_response = AIThreatsResponse.model_validate_json(response.choices[0].message.content)
         
-        # Validate and fix threat data structure
-        for cell_id, threats in threats_data.items():
-            for threat in threats:
-                # Ensure all required fields exist with defaults
-                if 'status' not in threat:
-                    threat['status'] = 'Open'
-                if 'type' not in threat:
-                    threat['type'] = 'Unknown'
-                if 'severity' not in threat:
-                    threat['severity'] = 'Medium'
-                if 'modelType' not in threat:
-                    threat['modelType'] = 'STRIDE'
-        
-        return threats_data
+        return ai_response.to_dict()
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON response from AI: {str(e)}")
     except Exception as e:
