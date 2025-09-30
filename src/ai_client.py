@@ -3,7 +3,7 @@
 import json
 from typing import Dict, List
 import litellm
-from models import AIThreatsResponse
+from models import AIThreatsResponseList
 
 
 def filter_out_of_scope_components(model: Dict) -> Dict:
@@ -48,13 +48,22 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
                 {"role": "user", "content": "Generate threats for all elements in the model."}
             ],
             temperature=0.3,
-            response_format=AIThreatsResponse
+            response_format=AIThreatsResponseList,
+            timeout=7200,
+            # api_base="http://192.168.110.99:11434"
+            api_base="https://550ffac8b6d1bb37-11434.af-za-1.gpu-instance.novita.ai"
         )
         
         # Parse the response using the Pydantic model
-        ai_response = AIThreatsResponse.model_validate_json(response.choices[0].message.content)
+        ai_response = AIThreatsResponseList.model_validate_json(response.choices[0].message.content)
+
         
-        return ai_response.to_dict()
+        # Convert to the format expected by utils.py
+        threats_data = {}
+        for item in ai_response.root:
+            threats_data[item.id] = [threat.model_dump() for threat in item.threats]
+#        print(threats_data)
+        return threats_data
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON response from AI: {str(e)}")
     except Exception as e:

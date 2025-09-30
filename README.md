@@ -10,6 +10,8 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 - **📊 Threat Dragon Integration**: Works seamlessly with Threat Dragon JSON models
 - **🎯 Smart Filtering**: Automatically skips out-of-scope components
 - **✅ Data Validation**: Built-in Pydantic validation for threat data integrity
+- **🔍 Response Validation**: Comprehensive validation of AI responses against original models
+- **📊 Validation Logging**: Timestamped validation logs with detailed coverage reports
 - **🎨 Visual Indicators**: Automatically adds visual cues (red strokes) to components with threats
 
 ## 🚀 Quick Start
@@ -59,6 +61,7 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 
 6. **Check results**
    - Updated model with AI-generated threats will be in `./output/`
+   - Validation logs with timestamp will be generated in `./output/`
 
 ## 🔧 Configuration
 
@@ -105,8 +108,29 @@ ai-threat-modeling/
 2. **🔍 Component Analysis**: Filters out-of-scope components automatically
 3. **🤖 AI Threat Generation**: Uses LLM to analyze components and generate threats
 4. **✅ Data Validation**: Ensures all generated threats have required fields
-5. **📝 Model Update**: Updates the threat model while preserving original formatting
-6. **🎨 Visual Updates**: Adds red stroke indicators to components with threats
+5. **🔍 Response Validation**: Validates AI response completeness and accuracy
+6. **📝 Model Update**: Updates the threat model while preserving original formatting
+7. **🎨 Visual Updates**: Adds red stroke indicators to components with threats
+8. **📊 Validation Logging**: Generates detailed validation reports with timestamps
+
+## 🔍 Validation Features
+
+The tool includes comprehensive validation to ensure AI responses are complete and accurate:
+
+### Validation Checks
+- **Coverage Validation**: Ensures all in-scope elements (outOfScope=false) have threats
+- **ID Validation**: Verifies all response IDs correspond to valid model elements
+- **Mitigation Validation**: Checks that threats include proper mitigation strategies
+- **Data Integrity**: Validates threat structure and required fields
+
+### Validation Outputs
+- **Console Summary**: Real-time validation results with coverage statistics
+- **Detailed Logs**: Timestamped JSON logs in `./output/` directory
+- **Error Reporting**: Specific details about missing elements and invalid IDs
+- **Coverage Metrics**: Percentage of in-scope elements with generated threats
+
+### Validation
+Validation runs automatically during threat generation and creates detailed logs in the `/output` directory.
 
 ## 🛠️ Development
 
@@ -126,6 +150,7 @@ python src/main.py
 - **`ai_client.py`**: Handles LLM communication and threat generation
 - **`utils.py`**: File operations and model manipulation utilities
 - **`models.py`**: Pydantic models for threat data validation
+- **`validator.py`**: Comprehensive validation of AI responses
 
 
 ## 📄 License
