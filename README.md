@@ -63,19 +63,22 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 
 6. **Check results**
    - Updated model with AI-generated threats will be in `./output/`
-   - Validation logs with timestamp will be generated in `./output/`
+   - Validation logs with timestamp will be generated in `./output/logs/`
 
 ## Configuration
 
-### Tested LLM Providers
+### Supported LLM Providers
 
-| Provider | Model Example | API Key Variable |
-|----------|---------------|------------------|
-| **OpenAI** | `openai/gpt-5` | `OPENAI_API_KEY` |
-| **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` |
-| **Anthropic** | `anthropic/claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` |
-| **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` |
-| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` |
+| Provider | Model Example | API Key Variable | Notes |
+|----------|---------------|------------------|-------|
+| **OpenAI** | `openai/gpt-5` | `OPENAI_API_KEY` | Supports JSON schema validation |
+| **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` | High-quality reasoning |
+| **Anthropic** | `anthropic/claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` | Balanced performance |
+| **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` | Supports JSON schema validation |
+| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` | Fast reasoning mode |
+| **Google** | `google/gemini-2.0-flash-exp` | `GOOGLE_API_KEY` | Experimental models |
+| **Ollama** | `ollama/llama3.2:latest` | None | Local deployment |
+| **Hugging Face** | `huggingface/meta-llama/Llama-2-7b-chat-hf` | `HUGGINGFACE_API_KEY` | Open source models |
 
 ### Environment Variables
 
@@ -84,6 +87,50 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 | `LLM_MODEL_NAME` | LLM model identifier | `openai/gpt-5` |
 | `INPUT_THREAT_SCHEMA_JSON` | Threat Dragon schema filename | `owasp.threat-dragon.schema.V2.json` |
 | `INPUT_THREAT_MODEL_JSON` | Input threat model filename | `my-model.json` |
+
+### Advanced Configuration Options
+
+The tool supports several advanced configuration options that can be modified in `src/ai_client.py`:
+
+#### LLM Response Settings
+- **`temperature`**: Controls randomness in AI responses (default: 0.1 for consistent results)
+- **`max_tokens`**: Maximum tokens in response (default: 24000)
+- **`timeout`**: Request timeout in seconds (default: 14400 = 4 hours)
+
+#### JSON Schema Validation
+- **`litellm.enable_json_schema_validation`**: Enable structured JSON validation for supported models (OpenAI, xAI)
+- **`response_format`**: Force structured JSON response format using Pydantic models
+
+#### Custom API Endpoints
+- **`api_base`**: Override default API endpoint for custom deployments or local models
+  - Example: `api_base="http://localhost:11434"` for local Ollama
+  - Example: `api_base="https://your-custom-endpoint.com"` for custom deployments
+
+#### LiteLLM Configuration
+- **`litellm.drop_params`**: Remove unsupported parameters (default: True)
+- **`litellm.enable_json_schema_validation`**: Enable JSON schema validation for supported providers
+
+### Configuration Examples
+
+#### Local Ollama Setup
+```python
+# In src/ai_client.py, uncomment and modify:
+api_base="http://localhost:11434"
+# LLM_MODEL_NAME=ollama/llama3.2:latest
+```
+
+#### Custom API Endpoint
+```python
+# In src/ai_client.py, uncomment and modify:
+api_base="https://your-custom-api.com/v1"
+```
+
+#### Enhanced JSON Validation
+```python
+# In src/ai_client.py, uncomment:
+litellm.enable_json_schema_validation = True
+response_format = AIThreatsResponseList
+```
 
 ## Project Structure
 
@@ -140,6 +187,37 @@ The tool includes comprehensive validation to ensure AI responses are complete a
 
 Validation runs automatically during threat generation and creates detailed logs in the `./output/logs/` directory.
 
+## Troubleshooting
+
+### Common Issues
+
+#### LLM Response Errors
+- **Invalid JSON**: The tool automatically attempts to extract JSON from malformed responses
+- **Timeout Issues**: Increase `timeout` value in `ai_client.py` for large models
+- **Token Limits**: Adjust `max_tokens` based on model capabilities
+
+#### Validation Warnings
+- **Missing Elements**: Normal for complex models - elements may be out of scope
+- **Empty Mitigations**: Check AI response quality or adjust prompt template
+- **Invalid IDs**: Verify model structure and element IDs
+
+#### Configuration Issues
+- **API Key Errors**: Ensure correct environment variables are set
+- **Model Not Found**: Verify model name format matches provider requirements
+- **Connection Issues**: Check `api_base` URL for custom endpoints
+
+### Performance Optimization
+
+#### For Large Models
+- Increase `timeout` to 28800 (8 hours) for very large threat models
+- Use `max_tokens=32000` for models with higher token limits
+- Consider using faster models for initial threat generation
+
+#### For Local Models (Ollama)
+- Ensure sufficient RAM (8GB+ recommended)
+- Use `api_base="http://localhost:11434"` for local deployment
+- Monitor system resources during generation
+
 ## Development
 
 ### Running the Application
@@ -159,6 +237,19 @@ python src/main.py
 - **`utils.py`**: File operations and model manipulation utilities
 - **`models.py`**: Pydantic models for threat data validation
 - **`validator.py`**: Comprehensive validation of AI responses
+
+### Customization
+
+#### Modifying the AI Prompt
+Edit `prompt.txt` to customize threat generation behavior:
+- Add specific threat frameworks
+- Modify threat categories
+- Adjust output format requirements
+
+#### Adding New LLM Providers
+1. Add provider configuration to `env.example`
+2. Update provider table in README
+3. Test with sample threat model
 
 
 ## License
