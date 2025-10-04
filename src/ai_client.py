@@ -26,6 +26,8 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
     try:
         # Call LLM
         logger.info(f"Calling LLM: {model_name}")
+
+        # use litellm.enable_json_schema_validation to enable LiteLLM to validate the response with the supported models e.g. OpenAI and xAI
         # litellm.enable_json_schema_validation = True
         litellm.drop_params = True
 
@@ -36,15 +38,19 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
                 {"role": "user", "content": "Generate threats for all elements in the model. Return a JSON object with an 'items' array containing threat data for each element."}
             ],
             temperature = 0.1,
-            response_format = AIThreatsResponseList,
-            timeout = 17200,
+
+            # use response_format to parse the response with the supported models e.g. OpenAI and xAI
+            # response_format = AIThreatsResponseList,
+
+            timeout = 14400,
             max_tokens=24000,
-            # api_base="https://d246c05785707d50-11434.af-za-1.gpu-instance.novita.ai"
-            # api_base="http://192.168.110.99:11434"
+
+            # Use api_base to set the base URL for the API if not using LiteLLM default.
+            # api_base="https://api-url.com"
+
         )
         
         # Parse response
-        # ai_response = AIThreatsResponseList.model_validate_json(response.choices[0].message.content)
         logger.debug(f"/\n\nResponse: {response}")
         try:
             ai_response = AIThreatsResponseList.model_validate_json(response.choices[0].message.content)

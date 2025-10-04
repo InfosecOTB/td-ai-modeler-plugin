@@ -10,36 +10,33 @@ from validator import ThreatValidator
 
 
 def setup_logging():
-    """Setup logging for the application."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path = f"./output/logs/threat_modeling_{timestamp}.log"
     os.makedirs("./output/logs", exist_ok=True)
 
-    # set litellm logger level to INFO
-    logging.getLogger("litellm").setLevel(logging.INFO)
-    
-    # root logger
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)      # capture everything internally
-    logger.handlers.clear()             # avoid duplicate handlers on reload
+    # Create our app logger instead of root
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)  # our app can emit DEBUG
 
-    # ---- File handler: keep full details ----
+    # --- File handler (full detail) ---
     file_handler = logging.FileHandler(log_path, encoding="utf-8")
-    file_handler.setLevel(logging.DEBUG)   # full debug/info/warning/error
-    file_fmt = logging.Formatter(
-        "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-    )
+    file_handler.setLevel(logging.DEBUG)
+    file_fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
     file_handler.setFormatter(file_fmt)
     logger.addHandler(file_handler)
 
-    # ---- Console handler: show only brief INFO+ ----
+    # --- Console handler (brief info+) ---
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    console_fmt = logging.Formatter("%(message)s")  # no timestamps, short
+    console_fmt = logging.Formatter("%(message)s")
     console_handler.setFormatter(console_fmt)
     logger.addHandler(console_handler)
 
-    return logging.getLogger(__name__)
+    # Quiet down noisy libraries
+    logging.getLogger("litellm").setLevel(logging.WARNING)
+
+    return logger
+
 
 
 

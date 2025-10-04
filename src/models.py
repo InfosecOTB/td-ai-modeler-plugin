@@ -23,14 +23,3 @@ class AIThreatsResponse(BaseModel):
 class AIThreatsResponseList(BaseModel):
     """List of AI threat responses."""
     items: List[AIThreatsResponse] = Field(description="List of threat responses")
-
-
-# class AIThreatsResponse(BaseModel):
-#     """AI response for a single element."""
-#     id: str = Field(description="Element ID")
-#     threats: List[Threats] = Field(description="List of threats for the element")
-# 
-# 
-# class AIThreatsResponseList(RootModel):
-#     """List of AI threat responses."""
-#     root: List[AIThreatsResponse] = Field(description="List of threat responses")

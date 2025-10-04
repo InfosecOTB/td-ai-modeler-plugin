@@ -39,6 +39,7 @@ TASK
    - When referencing or updating an element, copy the id exactly as it appears in the source JSON.
    - Never generate, modify, reformat, truncate, or guess an id.
    - Never use data.name, attrs.label.text, or any other field as an id.
+   - For flows, use the flow’s own id and don't use source.cell aor target.cell values.
    - If an element has no id (invalid model), skip it instead of inventing one.
 
 5. Preserve all existing fields and data; do not change or remove existing threats.
