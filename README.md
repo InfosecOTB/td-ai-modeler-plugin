@@ -2,13 +2,13 @@
 
 ![td-ai](assets/td-ai-part2.png)
 
-An intelligent threat modeling application that uses Large Language Models (LLMs) to automatically generate security threats for Threat Dragon models.
+An intelligent threat modeling application that uses Large Language Models (LLMs) to automatically generate security threats and their mitigation proposals for Threat Dragon models.
 
 ## Features
 
 - **AI-Powered Threat Generation**: Uses state-of-the-art LLMs to analyze system components and generate comprehensive security threats
-- **Threat Framework Support**: Supports multiple threat modeling frameworks including STRIDE, LINDDUN, CIA, and others
-- **Multi-LLM Support**: Compatible with OpenAI, Anthropic, Google, xAI, Azure OpenAI, Cohere, Hugging Face, and Ollama
+- **Threat Framework Support**: Supports STRIDE threat modeling framework, however the code can be adjusted for others as well
+- **Multi-LLM Support**: Tested on OpenAI, Anthropic, Google, and Ollama. As the code uses LiteLLM library, it should work with other models as well.
 - **Threat Dragon Integration**: Works seamlessly with Threat Dragon JSON models
 - **Smart Filtering**: Automatically skips out-of-scope components
 - **Data Validation**: Built-in Pydantic validation for threat data integrity
@@ -44,7 +44,7 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
    Edit `.env` with your configuration:
    ```env
    # Choose your LLM provider (uncomment one)
-   LLM_MODEL_NAME=openai/gpt-4o
+   LLM_MODEL_NAME=openai/gpt-5
    OPENAI_API_KEY=your_openai_api_key_here
    
    # Input files
@@ -53,7 +53,7 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
    ```
 
 4. **Prepare input files**
-   - Place your Threat Dragon schema file in `./input/`
+   - The Threat Dragon schema file is already in `./input/`
    - Place your threat model JSON file in `./input/`
 
 5. **Run the application**
@@ -75,10 +75,9 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 | **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` | High-quality reasoning |
 | **Anthropic** | `anthropic/claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` | Balanced performance |
 | **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` | Supports JSON schema validation |
-| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` | Fast reasoning mode |
-| **Google** | `google/gemini-2.0-flash-exp` | `GOOGLE_API_KEY` | Experimental models |
+| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` | Supports JSON schema validation  |
+| **Google** | `google/gemini-2.5-pro` | `GOOGLE_API_KEY` | Experimental models |
 | **Ollama** | `ollama/llama3.2:latest` | None | Local deployment |
-| **Hugging Face** | `huggingface/meta-llama/Llama-2-7b-chat-hf` | `HUGGINGFACE_API_KEY` | Open source models |
 
 ### Environment Variables
 
@@ -115,7 +114,9 @@ The tool supports several advanced configuration options that can be modified in
 #### Local Ollama Setup
 ```python
 # In src/ai_client.py, uncomment and modify:
-api_base="http://localhost:11434"
+# Ollama running on localhost doesn't require api_base to be set
+# but if it runs on a remote computer, the parameter has to be adjusted.
+api_base="http://server_ip_address:11434"
 # LLM_MODEL_NAME=ollama/llama3.2:latest
 ```
 
@@ -156,13 +157,12 @@ td-ai-modeler/
 ## How It Works
 
 1. **Input Processing**: Loads Threat Dragon schema and model files
-2. **Component Analysis**: Filters out-of-scope components automatically
-3. **AI Threat Generation**: Uses LLM to analyze components and generate threats
-4. **Data Validation**: Ensures all generated threats have required fields
-5. **Response Validation**: Validates AI response completeness and accuracy
-6. **Model Update**: Updates the threat model while preserving original formatting
-7. **Visual Updates**: Adds red stroke indicators to components with threats
-8. **Validation Logging**: Generates detailed validation reports with timestamps
+2. **AI Threat Generation**: Uses LLM to analyze components and generate threats
+3. **Data Validation**: Ensures all generated threats have required fields
+4. **Response Validation**: Validates AI response completeness and accuracy
+5. **Model Update**: Updates the threat model while preserving original formatting
+6. **Visual Updates**: Adds red stroke indicators to components with threats
+7. **Validation Logging**: Generates detailed validation reports with timestamps
 
 ## Validation Features
 
@@ -176,7 +176,7 @@ The tool includes comprehensive validation to ensure AI responses are complete a
 ### Validation Checks
 - **Coverage Validation**: Ensures all in-scope elements (outOfScope=false) have threats
 - **ID Validation**: Verifies all response IDs correspond to valid model elements
-- **Mitigation Validation**: Checks that threats include proper mitigation strategies
+- **Quality Validation**: Checks that threats include proper mitigation strategies (empty mitigations generate warnings)
 - **Data Integrity**: Validates threat structure and required fields
 
 ### Validation Outputs
@@ -184,6 +184,12 @@ The tool includes comprehensive validation to ensure AI responses are complete a
 - **Detailed Logs**: Timestamped logs in `./output/logs/` directory
 - **Error Reporting**: Specific details about missing elements and invalid IDs
 - **Coverage Metrics**: Percentage of in-scope elements with generated threats
+
+### Validation Notes
+- Trust boundary boxes and curves are excluded from validation
+- Missing elements are informational, not errors
+- Invalid IDs (out of scope) are warnings, not errors
+- Only completely different IDs are validation errors
 
 Validation runs automatically during threat generation and creates detailed logs in the `./output/logs/` directory.
 
@@ -199,6 +205,7 @@ Validation runs automatically during threat generation and creates detailed logs
 #### Validation Warnings
 - **Missing Elements**: Normal for complex models - elements may be out of scope
 - **Empty Mitigations**: Check AI response quality or adjust prompt template
+- **Out-of-Scope Elements**: Elements not in scope but have threats generated
 - **Invalid IDs**: Verify model structure and element IDs
 
 #### Configuration Issues
@@ -214,8 +221,7 @@ Validation runs automatically during threat generation and creates detailed logs
 - Consider using faster models for initial threat generation
 
 #### For Local Models (Ollama)
-- Ensure sufficient RAM (8GB+ recommended)
-- Use `api_base="http://localhost:11434"` for local deployment
+- Ensure sufficient hardware (GPU, CPU, RAM)
 - Monitor system resources during generation
 
 ## Development
@@ -266,7 +272,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 If you encounter any issues or have questions:
 
-1. Check the [Issues](https://github.com/your-username/ai-threat-modeling/issues) page
+1. Check the [Issues](https://github.com/your-username/td-ai-modeler/issues) page
 2. Create a new issue with detailed information
 3. Include your configuration and error messages
 

@@ -10,30 +10,32 @@ from validator import ThreatValidator
 
 
 def setup_logging():
+    """Setup logging for the application."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path = f"./output/logs/threat_modeling_{timestamp}.log"
     os.makedirs("./output/logs", exist_ok=True)
 
-    # Create our app logger instead of root
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)  # our app can emit DEBUG
+    # ---- Application logger (NOT root) ----
+    logger = logging.getLogger("threat_modeling")
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False            # <--- don't pass to root
 
-    # --- File handler (full detail) ---
+    # remove any existing handlers if re-running
+    logger.handlers.clear()
+
+    # File handler: full detail
     file_handler = logging.FileHandler(log_path, encoding="utf-8")
     file_handler.setLevel(logging.DEBUG)
     file_fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
     file_handler.setFormatter(file_fmt)
     logger.addHandler(file_handler)
 
-    # --- Console handler (brief info+) ---
+    # Console handler: brief info+
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_fmt = logging.Formatter("%(message)s")
     console_handler.setFormatter(console_fmt)
     logger.addHandler(console_handler)
-
-    # Quiet down noisy libraries
-    logging.getLogger("litellm").setLevel(logging.WARNING)
 
     return logger
 
@@ -77,11 +79,11 @@ def main():
     threats_data = generate_threats(schema, model, llm_model)
     
     # Log detailed AI response
-    logger.info("AI Response Details:")
+    logger.debug("AI Response Details:")
     for elem_id, threats in threats_data.items():
-        logger.info(f"  Element {elem_id}: {len(threats)} threats")
+        logger.debug(f"  Element {elem_id}: {len(threats)} threats")
         for i, threat in enumerate(threats):
-            logger.info(f"    Threat {i+1}: {threat.get('title', 'No title')} ({threat.get('severity', 'Unknown severity')}) - {threat.get('status', 'Unknown status')}")
+            logger.debug(f"    Threat {i+1}: {threat.get('title', 'No title')} ({threat.get('severity', 'Unknown severity')}) - {threat.get('status', 'Unknown status')}")
     
     # Update model with threats
     update_threats_in_file(output_path, threats_data)
@@ -101,9 +103,8 @@ def main():
         
         validation_result = validator.validate_ai_response(model, ai_response_format, model_file)
         
-        # Print summary if there are issues
-        if not validation_result.is_valid or validation_result.warnings:
-            validator.print_summary(validation_result)
+        # Always print validation summary
+        validator.print_summary(validation_result)
             
     except Exception as e:
         logger.error(f"Validation error: {str(e)}")

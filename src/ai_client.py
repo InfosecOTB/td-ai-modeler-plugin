@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, List[Dict]]:
     """Generate AI-powered threats for all in-scope components."""
+    logger = logging.getLogger("threat_modeling.ai_client")
     logger.info("Starting threat generation...")
     
   
@@ -28,7 +29,7 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
         logger.info(f"Calling LLM: {model_name}")
 
         # use litellm.enable_json_schema_validation to enable LiteLLM to validate the response with the supported models e.g. OpenAI and xAI
-        # litellm.enable_json_schema_validation = True
+        litellm.enable_json_schema_validation = True
         litellm.drop_params = True
 
         response = litellm.completion(
@@ -40,7 +41,7 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
             temperature = 0.1,
 
             # use response_format to parse the response with the supported models e.g. OpenAI and xAI
-            # response_format = AIThreatsResponseList,
+            response_format = AIThreatsResponseList,
 
             timeout = 14400,
             max_tokens=24000,
