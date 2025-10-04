@@ -2,8 +2,6 @@
 
 ![vMeNext](assets/TDAI-PART2.png)
 
-<div align="center">
-
 An intelligent threat modeling application that uses Large Language Models (LLMs) to automatically generate security threats for Threat Dragon models.
 
 ## Features
