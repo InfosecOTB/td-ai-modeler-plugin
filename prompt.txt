@@ -26,7 +26,9 @@ CONTEXT ABOUT THE DIAGRAMS (READ CAREFULLY)
 ------------------------------------------------------------
 TASK
 
-1. Analyze the model using STRIDE and append any missing threats based on elements and their relationships/flows inferred from the layout and connection graph.
+1. Analyze the model using STRIDE and append any missing threats. 
+   - Consider the entire diagram, including out-of-scope elements, trust boundaries, flows, and their layout relationships (positions, zones, ingress/egress, adjacency, public networks, encryption).
+   - Use out-of-scope elements as part of the attack surface and environment context (they can originate or receive flows, form boundary crossings, or represent external threats), but do NOT attach threats to them.
 
 2. Only add threats to elements where:
    - shape is one of: flow, store, actor, process
