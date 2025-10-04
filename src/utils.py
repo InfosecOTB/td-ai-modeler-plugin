@@ -1,76 +1,90 @@
-"""Utility functions for file operations and threat model updates."""
+"""Simplified utility functions for file operations and threat model updates."""
 
 import json
 import shutil
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def load_json(path: str) -> dict:
     """Load and parse a JSON file."""
-    print(f"Loading JSON from {path}")
+    logger.info(f"Loading JSON from {path}")
     with open(path, 'r') as f:
         return json.load(f)
 
 
 def copy_file(src: str, dest: str) -> None:
     """Copy a file from source to destination."""
+    logger.info(f"Copying file from {src} to {dest}")
     shutil.copy(src, dest)
 
 
 def update_threats_in_file(file_path: str, threats_data: dict) -> None:
     """Update threat model with AI-generated threats and visual indicators."""
+    logger.info(f"Updating threats in file: {file_path}")
+    
     with open(file_path, 'r', encoding='utf-8') as f:
-        content = f.read()
+        data = json.load(f)
     
-    # Parse the JSON to get the structure
-    data = json.loads(content)
+    updated_count = 0
     
-    # Update threats in the data structure
     for diagram in data.get('detail', {}).get('diagrams', []):
         for cell in diagram.get('cells', []):
             cell_id = cell.get('id')
-            if cell_id and cell_id in threats_data:
-                # Check if component is out of scope - skip if outOfScope is true
-                if 'data' in cell and 'outOfScope' in cell['data'] and cell['data']['outOfScope'] == True:
-                    print(f"Skipping component {cell_id} - outOfScope is true")
+            if cell_id in threats_data:
+                # Skip out-of-scope components
+                if (cell.get('data', {}).get('outOfScope') or \
+                   cell.get('shape', '') in ['trust-boundary-box', 'trust-boundary-curve']):
                     continue
                 
-                # Place threats inside the data object, not at cell level
+                # Ensure data object exists
                 if 'data' not in cell:
                     cell['data'] = {}
                 
-                # Generate UUIDs for threats that don't have them
-                threats_with_uuids = []
+                # Add threats with UUIDs
+                threats_with_ids = []
                 for threat in threats_data[cell_id]:
-                    if 'id' not in threat or not threat['id']:
+                    if 'id' not in threat:
                         threat['id'] = str(uuid.uuid4())
-                    threats_with_uuids.append(threat)
+                    threats_with_ids.append(threat)
                 
-                cell['data']['threats'] = threats_with_uuids
+                cell['data']['threats'] = threats_with_ids
                 
-                # Update hasOpenThreats if it exists
+                # Update open threats flag
                 if 'hasOpenThreats' in cell['data']:
-                    # Defensive programming: check if status field exists and default to 'Open' if missing
-                    cell['data']['hasOpenThreats'] = any(t.get('status', 'Open') == 'Open' for t in threats_data[cell_id])
+                    cell['data']['hasOpenThreats'] = any(
+                        t.get('status', 'Open') == 'Open' for t in threats_data[cell_id]
+                    )
                 
-                # Change stroke color to red when threats are added
-                if 'attrs' in cell and 'line' in cell['attrs']:
-                    cell['attrs']['line']['stroke'] = 'red'
-                elif 'attrs' in cell and 'body' in cell['attrs']:
-                    cell['attrs']['body']['stroke'] = 'red'
-                elif 'attrs' in cell and 'topLine' in cell['attrs']:
-                    # Handle store shape with topLine and bottomLine
-                    cell['attrs']['topLine']['stroke'] = 'red'
-                    if 'bottomLine' in cell['attrs']:
-                        cell['attrs']['bottomLine']['stroke'] = 'red'
-                elif 'attrs' in cell:
-                    # If attrs exists but doesn't have line or body, add stroke to the main attrs
-                    if 'stroke' not in cell['attrs']:
-                        cell['attrs']['stroke'] = 'red'
-                else:
-                    # If no attrs object exists, create one with red stroke
-                    cell['attrs'] = {'stroke': 'red'}
+                # Add red stroke indicator
+                _add_red_stroke(cell)
+                updated_count += 1
     
-    # Save back with minimal formatting changes
+    # Save updated model
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, separators=(',', ': '), ensure_ascii=False)
+    
+    logger.info(f"Updated {updated_count} cells with threats")
+
+
+def _add_red_stroke(cell: dict) -> None:
+    """Add red stroke indicator to cell."""
+    if 'attrs' not in cell:
+        cell['attrs'] = {'stroke': 'red'}
+        return
+    
+    attrs = cell['attrs']
+    
+    # Try different stroke locations based on cell type
+    if 'line' in attrs:
+        attrs['line']['stroke'] = 'red'
+    elif 'body' in attrs:
+        attrs['body']['stroke'] = 'red'
+    elif 'topLine' in attrs:
+        attrs['topLine']['stroke'] = 'red'
+        if 'bottomLine' in attrs:
+            attrs['bottomLine']['stroke'] = 'red'
+    else:
+        attrs['stroke'] = 'red'

@@ -1,16 +1,105 @@
 You are a threat modeling expert using the STRIDE framework (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege).
 
-The schema defines the structure and requirements for a valid Threat Dragon model:
+Model Schema:
 {schema_json}
 
-The threat model is:
+Current Threat Model:
 {model_json}
 
-The threat model includes diagrams defined with cells that contain attributes such as id, position (x, y), size (width, height), shape, and other properties.
-You must interpret and visualize the data flow diagram layout based on this JSON description.
+------------------------------------------------------------
+CONTEXT ABOUT THE DIAGRAMS (READ CAREFULLY)
 
-Analyze the model using the STRIDE methodology and generate threats for each diagram element (such as actors, processes, data stores, and data flows) where the "id" object is followed by a "data" object that includes a child object "threats" and has "outOfScope": false.
+- The threat model includes diagrams defined with "cells" (elements). Each cell has:
+  id (string UUID), shape, position {{x,y}}, size {{width,height}}, optional vertices, attrs,
+  and (for flows) source.cell and target.cell.
+  Other fields may exist (e.g., data.*, ports, labels). They are descriptive/configuration only.
 
-For each threat, suggest all reasonable mitigations and list them using bullet points.
+- You must interpret the data-flow diagram layout from this JSON — do NOT render or describe a picture.
+  Use:
+    * Positions & sizes to infer adjacency, proximity, containment, and potential trust boundary crossing (compute bounding boxes from position + size).
+    * Shapes to understand element roles: actor, process, store, flow, and trust boundaries (trust-boundary-box, trust-boundary-curve).
+    * Connections/Edges (flows) via source.cell → target.cell to determine direction, ingress/egress, and boundary traversal.
+    * Flags such as data.isPublicNetwork, data.isEncrypted, data.isBidirectional, and data.protocol to judge exposure and confidentiality.
 
-CRITICAL: You must return threats organized under the exact same element "id" — do not modify it. Copy it exactly as it appears in the source model JSON file.
+  Use the layout and connections to inform STRIDE findings: for example, flows crossing from public/unknown zones to privileged zones (ingress), flows leaving zones (egress), elements straddling or adjacent to trust boundaries, unencrypted flows over public networks, etc.
+
+------------------------------------------------------------
+TASK
+
+1. Analyze the model using STRIDE and append any missing threats based on elements and their relationships/flows inferred from the layout and connection graph.
+
+2. Only add threats to elements where:
+   - shape is one of: flow, store, actor, process
+   - data.outOfScope is false
+
+3. Do NOT add threats to elements with shape "trust-boundary-curve" or "trust-boundary-box".
+
+4. CRITICAL — ID HANDLING
+   - Treat cell.id as the ONLY valid identifier for any element.
+   - When referencing or updating an element, copy the id exactly as it appears in the source JSON.
+   - Never generate, modify, reformat, truncate, or guess an id.
+   - Never use data.name, attrs.label.text, or any other field as an id.
+   - If an element has no id (invalid model), skip it instead of inventing one.
+
+5. Preserve all existing fields and data; do not change or remove existing threats.
+   Only append new threat objects to each applicable element’s data.threats array.
+
+6. Output STRICTLY as a JSON object where keys are cell 'id' values, and values are arrays of threat objects. Each threat object must include:
+  - title: str (short title).
+  - status: str ("Open").
+  - severity: str ("High", "Medium", or "Low") - justify via exposure, boundary crossing, data sensitivity, and exploitability.
+  - type: str (one of: "Spoofing", "Tampering", "Repudiation", "Information Disclosure", "Denial of Service", "Elevation of Privilege")
+  - description: str (detailed description - reference the exact element by id and the observed layout facts: zones, crossings, public network, encryption)
+  - mitigations: array of bullet points (e.g., "- Enforce TLS 1.2+ end-to-end", "- Apply mutual auth between services", "- Validate JWT audience/issuer", "- Rate-limit and WAF on ingress").
+  - modelType : str ("STRIDE")
+  Do not include threatId, number, or score. Output only the JSON, nothing else.
+
+------------------------------------------------------------
+LAYOUT-AWARE PROCEDURE (FOLLOW STEP-BY-STEP)
+
+- Build element map by ID: elements[id] = cell. Use only cell.id as the key.
+- Identify trust zones: any cell.shape in {{trust-boundary-box, trust-boundary-curve}} defines a boundary.
+  For boxes, infer the rectangle from position + size.
+  For curves, use vertices as the path.
+- Compute containment: an element is “inside” a boundary if its bounding box lies within the boundary shape; otherwise it’s outside.
+- Find flows: iterate cells with shape = "flow". Use source.cell and target.cell to bind endpoints.
+- Detect boundary crossings: a flow “crosses” if source and target reside in different trust zones (or one is outside all and the other is inside).
+- Assess exposure: a flow is exposed if data.isPublicNetwork = true, or protocol indicates public transport (e.g., http, smtp across internet) and/or data.isEncrypted = false.
+- Ingress/Egress:
+    * Ingress: flow targets a more trusted zone from less trusted/untrusted/external.
+    * Egress: flow leaves a trusted zone to less trusted/external.
+- Adjacency/Proximity: elements whose bounding boxes touch/overlap or are very close may share implicit attack surfaces (e.g., shared host, same subnet). Use this only to inform threats; do not alter data.
+
+Use these signals to propose STRIDE threats with precise, layout-informed rationales (e.g., “Unencrypted public network flow crossing from external actor to web app process”, “Boundary-crossing API request into admin zone”, etc.).
+llet points (e.g., "- Enforce TLS 1.2+ end-to-end", "- Apply mutual auth between services", "- Validate JWT audience/issuer", "- Rate-limit and WAF on ingress").
+
+------------------------------------------------------------
+OUTPUT RULES
+
+Return ONLY a single JSON object with this shape:
+
+{{
+  "items": [
+    {{
+      "id": "215ae440-6290-43c0-8586-7ddaf8921ad9",
+      "threats": [
+        {{
+          "title": "Unencrypted public ingress",
+          "status": "Open",
+          "severity": "High",
+          "type": "Information Disclosure",
+          "description": "Flow 215ae440-... crosses from an external zone into process ... without encryption ...",
+          "mitigation": "Enforce TLS 1.2+ end-to-end; require mTLS between components; terminate TLS only inside the trusted zone.",
+          "modelType": "STRIDE"
+        }}
+      ]
+    }}
+  ]
+}}
+
+- Only include shapes: flow, store, actor, process (not outOfScope).
+- Exclude trust-boundary-box / trust-boundary-curve.
+- Use cell.id exactly as provided.
+- Output JSON only. No Markdown or prose.
+
+------------------------------------------------------------
