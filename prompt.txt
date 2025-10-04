@@ -50,7 +50,7 @@ TASK
   - status: str ("Open").
   - severity: str ("High", "Medium", or "Low") - justify via exposure, boundary crossing, data sensitivity, and exploitability.
   - type: str (one of: "Spoofing", "Tampering", "Repudiation", "Information Disclosure", "Denial of Service", "Elevation of Privilege")
-  - description: str (detailed description - reference the exact element by id and the observed layout facts: zones, crossings, public network, encryption)
+  - description: str (detailed description - reference the exact element by name (don't use element id) and the observed layout facts: zones, crossings, public network, encryption)
   - mitigations: array of bullet points (e.g., "- Enforce TLS 1.2+ end-to-end", "- Apply mutual auth between services", "- Validate JWT audience/issuer", "- Rate-limit and WAF on ingress").
   - modelType : str ("STRIDE")
   Do not include threatId, number, or score. Output only the JSON, nothing else.
@@ -89,7 +89,7 @@ Return ONLY a single JSON object with this shape:
           "status": "Open",
           "severity": "High",
           "type": "Information Disclosure",
-          "description": "Flow 215ae440-... crosses from an external zone into process ... without encryption ...",
+          "description": "Flow Request-... crosses from an external zone into process ... without encryption ...",
           "mitigation": "Enforce TLS 1.2+ end-to-end; require mTLS between components; terminate TLS only inside the trusted zone.",
           "modelType": "STRIDE"
         }}
