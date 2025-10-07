@@ -3,21 +3,22 @@ You are a threat modeling expert using the STRIDE framework (Spoofing, Tampering
 Model Schema:
 {schema_json}
 
-Current Threat Model:
+Current Threat Model (MAY CONTAIN MULTIPLE DIAGRAMS):
 {model_json}
 
 ------------------------------------------------------------
 CONTEXT ABOUT THE DIAGRAMS (READ CAREFULLY)
 
-- The threat model includes diagrams defined with "cells" (elements). Each cell has:
+- The threat model may contain one or more diagrams in "detail.diagrams[]".  
+  Each diagram contains "cells" (elements). Each cell has:
   id (string UUID), shape, position {{x,y}}, size {{width,height}}, optional vertices, attrs,
   and (for flows) source.cell and target.cell.
   Other fields may exist (e.g., data.*, ports, labels). They are descriptive/configuration only.
 
-- You must interpret the data-flow diagram layout from this JSON — do NOT render or describe a picture.
+- For each diagram, you must interpret its data-flow diagram layout — do NOT render or describe a picture.
   Use:
     * Positions & sizes to infer adjacency, proximity, containment, and potential trust boundary crossing (compute bounding boxes from position + size).
-    * Shapes to understand element roles: actor, process, store, flow, and trust boundaries (trust-boundary-box, trust-boundary-curve).
+    * Shapes to understand element roles: "actor", "process", "store", "flow", and "trust boundaries" (trust-boundary-box, trust-boundary-curve).
     * Connections/Edges (flows) via source.cell → target.cell to determine direction, ingress/egress, and boundary traversal.
     * Flags such as data.isPublicNetwork, data.isEncrypted, data.isBidirectional, and data.protocol to judge exposure and confidentiality.
 
@@ -31,7 +32,7 @@ TASK
    - Use out-of-scope elements as part of the attack surface and environment context (they can originate or receive flows, form boundary crossings, or represent external threats), but do NOT attach threats to them.
 
 2. Only add threats to elements where:
-   - shape is one of: flow, store, actor, process
+   - shape is one of: "actor", "process", "store", "flow"
    - data.outOfScope is false
 
 3. Do NOT add threats to elements with shape "trust-boundary-curve" or "trust-boundary-box".
@@ -53,15 +54,16 @@ TASK
   - severity: str ("High", "Medium", or "Low") - justify via exposure, boundary crossing, data sensitivity, and exploitability.
   - type: str (one of: "Spoofing", "Tampering", "Repudiation", "Information Disclosure", "Denial of Service", "Elevation of Privilege")
   - description: str (detailed description - reference the exact element by name (don't use element id) and the observed layout facts: zones, crossings, public network, encryption)
-  - mitigations: array of bullet points (e.g., "- Enforce TLS 1.2+ end-to-end", "- Apply mutual auth between services", "- Validate JWT audience/issuer", "- Rate-limit and WAF on ingress").
+  - mitigation: str (e.g., "Implement mutual TLS authentication and certificate pinning for all external API calls." or "- Enforce TLS 1.2+ end-to-end\n- Require mTLS between components").
   - modelType : str ("STRIDE")
   Do not include threatId, number, or score. Output only the JSON, nothing else.
+  
 
 ------------------------------------------------------------
 LAYOUT-AWARE PROCEDURE (FOLLOW STEP-BY-STEP)
 
-- Build element map by ID: elements[id] = cell. Use only cell.id as the key.
-- Identify trust zones: any cell.shape in {{trust-boundary-box, trust-boundary-curve}} defines a boundary.
+- For each diagram: build element map by ID: elements[id] = cell. Use only cell.id as the key.
+- Within each diagram: identify trust zones: any cell.shape in {{trust-boundary-box, trust-boundary-curve}} defines a boundary.
   For boxes, infer the rectangle from position + size.
   For curves, use vertices as the path.
 - Compute containment: an element is “inside” a boundary if its bounding box lies within the boundary shape; otherwise it’s outside.
@@ -74,25 +76,25 @@ LAYOUT-AWARE PROCEDURE (FOLLOW STEP-BY-STEP)
 - Adjacency/Proximity: elements whose bounding boxes touch/overlap or are very close may share implicit attack surfaces (e.g., shared host, same subnet). Use this only to inform threats; do not alter data.
 
 Use these signals to propose STRIDE threats with precise, layout-informed rationales (e.g., “Unencrypted public network flow crossing from external actor to web app process”, “Boundary-crossing API request into admin zone”, etc.).
-llet points (e.g., "- Enforce TLS 1.2+ end-to-end", "- Apply mutual auth between services", "- Validate JWT audience/issuer", "- Rate-limit and WAF on ingress").
+
 
 ------------------------------------------------------------
 OUTPUT RULES
 
-Return ONLY a single JSON object with this shape:
+Return **ONLY** a single JSON object with this exact shape (matches the system’s model):
 
 {{
   "items": [
     {{
-      "id": "215ae440-6290-43c0-8586-7ddaf8921ad9",
+      "id": "<cell.id>",
       "threats": [
         {{
-          "title": "Unencrypted public ingress",
+          "title": "Short threat title",
           "status": "Open",
-          "severity": "High",
-          "type": "Information Disclosure",
-          "description": "Flow Request-... crosses from an external zone into process ... without encryption ...",
-          "mitigation": "Enforce TLS 1.2+ end-to-end; require mTLS between components; terminate TLS only inside the trusted zone.",
+          "severity": "High | Medium | Low",
+          "type": "Spoofing | Tampering | Repudiation | Information Disclosure | Denial of Service | Elevation of Privilege",
+          "description": "Detailed description (mention element name and layout facts such as boundary crossing, encryption, public networks, adjacency).",
+          "mitigation": "Mitigation actions (e.g., enforce TLS 1.2+ end-to-end, mTLS, WAF, RBAC).",
           "modelType": "STRIDE"
         }}
       ]
@@ -100,9 +102,10 @@ Return ONLY a single JSON object with this shape:
   ]
 }}
 
-- Only include shapes: flow, store, actor, process (not outOfScope).
+- Include one object in "items" per applicable element.
+- Each element can have zero, one or **multiple threats** in its "threats" array.
+- Include only elements with shape in {{actor, process, store, flow}} and where data.outOfScope=false.
 - Exclude trust-boundary-box / trust-boundary-curve.
-- Use cell.id exactly as provided.
-- Output JSON only. No Markdown or prose.
-
+- **Use the element’s exact "id"** in the "id" field.
+- Output JSON only (no markdown fences, no prose).
 ------------------------------------------------------------

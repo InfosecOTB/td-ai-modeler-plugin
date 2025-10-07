@@ -31,6 +31,8 @@ def setup_logging():
     logger.addHandler(file_handler)
 
     # Console handler: brief info+
+
+    
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_fmt = logging.Formatter("%(message)s")

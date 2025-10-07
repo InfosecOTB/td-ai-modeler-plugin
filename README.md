@@ -67,17 +67,37 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 
 ## Configuration
 
-### Supported LLM Providers
+### Tested LLM Providers
 
-| Provider | Model Example | API Key Variable | Notes |
-|----------|---------------|------------------|-------|
-| **OpenAI** | `openai/gpt-5` | `OPENAI_API_KEY` | Supports JSON schema validation |
-| **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` | High-quality reasoning |
-| **Anthropic** | `anthropic/claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` | Balanced performance |
-| **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` | Supports JSON schema validation |
-| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` | Supports JSON schema validation  |
-| **Google** | `google/gemini-2.5-pro` | `GOOGLE_API_KEY` | Experimental models |
-| **Ollama** | `ollama/llama3.2:latest` | None | Local deployment |
+| Provider | Model | API Key Variable | Recommended Configuration |
+|----------|-------|------------------|---------------------------|
+| **Anthropic** | `anthropic/claude-sonnet-4-5-20250929` | `ANTHROPIC_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **Novita** | `novita/deepseek/deepseek-r1` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=16000`<br>`api_base="https://api.novita.ai/openai"` |
+| **Novita** | `novita/qwen/qwen3-coder-480b-a35b-instruct` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000`<br>`api_base="https://api.novita.ai/openai"` |
+| **Novita** | `novita/deepseek/deepseek-v3.1-terminus` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000`<br>`api_base="https://api.novita.ai/openai"` |
+| **Local Ollama** | `ollama/gemma3:27b` | None | `# litellm.enable_json_schema_validation = True`<br>`# temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **OpenAI** | `openai/gpt-5` | `OPENAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **OpenAI** | `openai/gpt-5-mini` | `OPENAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **Google** | `gemini/gemini-2.5-pro` | `GOOGLE_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+
+#### Recommended Configuration Parameters
+
+The recommended configuration settings in the table above include several key parameters that can be adjusted in `src/ai_client.py`:
+
+- **`litellm.enable_json_schema_validation`**: Enables structured JSON validation for supported models. When prefixed with `#`, this parameter should be **commented out** (disabled) as the model doesn't support JSON schema validation.
+
+- **`temperature`**: Controls the randomness and creativity of AI responses (0.0 = deterministic, 1.0 = very random). Lower values (0.1) provide more consistent, focused responses ideal for threat modeling.
+
+- **`response_format`**: Forces the AI to return structured JSON using Pydantic models. When prefixed with `#`, this parameter should be **commented out** as the model doesn't support structured output.
+
+- **`max_tokens`**: Maximum number of tokens the AI can generate in a single response. Higher values allow for more comprehensive threat descriptions but may increase processing time and costs.
+
+- **`api_base`**: Custom API endpoint URL for providers like Novita that use different base URLs than the default LiteLLM endpoints.
+
+**Important**: Parameters prefixed with `#` in the table should be **commented out** in your configuration, while parameters without `#` should be **uncommented** (active).
 
 ### Environment Variables
 
@@ -92,7 +112,6 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 The tool supports several advanced configuration options that can be modified in `src/ai_client.py`:
 
 #### LLM Response Settings
-- **`temperature`**: Controls randomness in AI responses (default: 0.1 for consistent results)
 - **`max_tokens`**: Maximum tokens in response (default: 24000)
 - **`timeout`**: Request timeout in seconds (default: 14400 = 4 hours)
 
@@ -102,36 +121,10 @@ The tool supports several advanced configuration options that can be modified in
 
 #### Custom API Endpoints
 - **`api_base`**: Override default API endpoint for custom deployments or local models
-  - Example: `api_base="http://localhost:11434"` for local Ollama
   - Example: `api_base="https://your-custom-endpoint.com"` for custom deployments
 
 #### LiteLLM Configuration
 - **`litellm.drop_params`**: Remove unsupported parameters (default: True)
-- **`litellm.enable_json_schema_validation`**: Enable JSON schema validation for supported providers
-
-### Configuration Examples
-
-#### Local Ollama Setup
-```python
-# In src/ai_client.py, uncomment and modify:
-# Ollama running on localhost doesn't require api_base to be set
-# but if it runs on a remote computer, the parameter has to be adjusted.
-api_base="http://server_ip_address:11434"
-# LLM_MODEL_NAME=ollama/llama3.2:latest
-```
-
-#### Custom API Endpoint
-```python
-# In src/ai_client.py, uncomment and modify:
-api_base="https://your-custom-api.com/v1"
-```
-
-#### Enhanced JSON Validation
-```python
-# In src/ai_client.py, uncomment:
-litellm.enable_json_schema_validation = True
-response_format = AIThreatsResponseList
-```
 
 ## Project Structure
 
@@ -216,7 +209,6 @@ Validation runs automatically during threat generation and creates detailed logs
 ### Performance Optimization
 
 #### For Large Models
-- Increase `timeout` to 28800 (8 hours) for very large threat models
 - Use `max_tokens=32000` for models with higher token limits
 - Consider using faster models for initial threat generation
 
@@ -264,7 +256,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Acknowledgments
 
-- [Threat Dragon](https://threatdragon.org/) for the excellent threat modeling framework
+- [OWASP Threat Dragon](https://owasp.org/www-project-threat-dragon/) for the excellent threat modeling framework
 - [LiteLLM](https://github.com/BerriAI/litellm) for seamless multi-LLM support
 - [Pydantic](https://pydantic.dev/) for robust data validation
 

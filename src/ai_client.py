@@ -36,7 +36,7 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
             model = model_name,
             messages = [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Generate threats for all elements in the model. Return a JSON object with an 'items' array containing threat data for each element."}
+                {"role": "user", "content": "Analyze provided Threat Dragon model, generate threats and mitigations for elements and return a valid JSON following the rules."}
             ],
             temperature = 0.1,
 
@@ -48,7 +48,6 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
 
             # Use api_base to set the base URL for the API if not using LiteLLM default.
             # api_base="https://api-url.com"
-
         )
         
         # Parse response
