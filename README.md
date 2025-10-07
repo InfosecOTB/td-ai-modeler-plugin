@@ -258,13 +258,9 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 - [LiteLLM](https://github.com/BerriAI/litellm) for seamless multi-LLM support
 - [Pydantic](https://pydantic.dev/) for robust data validation
 
-## Support
+## Additional Resources
 
-If you encounter any issues or have questions:
-
-1. Check the [Issues](https://github.com/your-username/td-ai-modeler/issues) page
-2. Create a new issue with detailed information
-3. Include your configuration and error messages
+For more information about cybersecurity and AI projects, visit my blog at [https://infosecotb.com](https://infosecotb.com).
 
 ---
 
