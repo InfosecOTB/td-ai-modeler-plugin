@@ -73,9 +73,9 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 |----------|-------|------------------|---------------------------|
 | **Anthropic** | `anthropic/claude-sonnet-4-5-20250929` | `ANTHROPIC_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
 | **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **Novita** | `novita/deepseek/deepseek-r1` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=16000`<br>`api_base="https://api.novita.ai/openai"` |
-| **Novita** | `novita/qwen/qwen3-coder-480b-a35b-instruct` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000`<br>`api_base="https://api.novita.ai/openai"` |
-| **Novita** | `novita/deepseek/deepseek-v3.1-terminus` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000`<br>`api_base="https://api.novita.ai/openai"` |
+| **Novita** | `novita/deepseek/deepseek-r1` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=16000` |
+| **Novita** | `novita/qwen/qwen3-coder-480b-a35b-instruct` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **Novita** | `novita/deepseek/deepseek-v3.1-terminus` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
 | **Local Ollama** | `ollama/gemma3:27b` | None | `# litellm.enable_json_schema_validation = True`<br>`# temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
 | **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
 | **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
@@ -94,8 +94,6 @@ The recommended configuration settings in the table above include several key pa
 - **`response_format`**: Forces the AI to return structured JSON using Pydantic models. When prefixed with `#`, this parameter should be **commented out** as the model doesn't support structured output.
 
 - **`max_tokens`**: Maximum number of tokens the AI can generate in a single response. Higher values allow for more comprehensive threat descriptions but may increase processing time and costs.
-
-- **`api_base`**: Custom API endpoint URL for providers like Novita that use different base URLs than the default LiteLLM endpoints.
 
 **Important**: Parameters prefixed with `#` in the table should be **commented out** in your configuration, while parameters without `#` should be **uncommented** (active).
 
