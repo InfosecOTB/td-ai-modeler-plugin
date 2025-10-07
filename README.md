@@ -8,7 +8,7 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 
 - **AI-Powered Threat Generation**: Uses state-of-the-art LLMs to analyze system components and generate comprehensive security threats
 - **Threat Framework Support**: Supports STRIDE threat modeling framework, however the code can be adjusted for others as well
-- **Multi-LLM Support**: Tested on OpenAI, Anthropic, Google, and Ollama. As the code uses LiteLLM library, it should work with other models as well.
+- **Multi-LLM Support**: Tested on OpenAI, Anthropic, Google, Novita, and xAI. As the code uses LiteLLM library, it should work with other models as well.
 - **Threat Dragon Integration**: Works seamlessly with Threat Dragon JSON models
 - **Smart Filtering**: Automatically skips out-of-scope components
 - **Data Validation**: Built-in Pydantic validation for threat data integrity
