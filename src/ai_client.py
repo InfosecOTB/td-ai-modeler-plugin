@@ -59,7 +59,7 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
             # Higher values allow more comprehensive threat descriptions
             max_tokens=24000,
 
-            # API Base URL: Override for custom endpoints (required for Novita, custom deployments)
+            # API Base URL: Override for custom endpoints.
             # Examples:
             #   - Custom: api_base="https://your-custom-endpoint.com"
         )
