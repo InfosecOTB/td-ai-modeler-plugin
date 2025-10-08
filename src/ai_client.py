@@ -25,11 +25,16 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
     )
     
     try:
-        # Call LLM
         logger.info(f"Calling LLM: {model_name}")
 
-        # use litellm.enable_json_schema_validation to enable LiteLLM to validate the response with the supported models e.g. OpenAI and xAI
+        # ============================================================================
+        # CONFIGURATION: Adjust these settings based on your LLM provider
+        # See README.md "Tested LLM Providers" section for recommended configurations
+        # ============================================================================
+        
+        # JSON Schema Validation: Enable for OpenAI, xAI (comment out for Anthropic, Gemini, and some Novita models)
         litellm.enable_json_schema_validation = True
+        
         litellm.drop_params = True
 
         response = litellm.completion(
@@ -38,16 +43,25 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": "Analyze provided Threat Dragon model, generate threats and mitigations for elements and return a valid JSON following the rules."}
             ],
+            
+            # Temperature: Controls randomness (0.0=deterministic, 1.0=creative)
+            # Lower values (0.1) provide consistent, focused threat modeling results
             temperature = 0.1,
 
-            # use response_format to parse the response with the supported models e.g. OpenAI and xAI
+            # Response Format: Forces structured JSON output (comment out for Anthropic, Gemini, some Novita models)
+            # Requires JSON schema validation support from the LLM provider
             response_format = AIThreatsResponseList,
 
+            # Timeout: Request timeout in seconds (14400 = 4 hours for large models)
             timeout = 14400,
+            
+            # Max Tokens: Maximum response length - adjust based on model capabilities
+            # Higher values allow more comprehensive threat descriptions
             max_tokens=24000,
 
-            # Use api_base to set the base URL for the API if not using LiteLLM default.
-            # api_base="https://api-url.com"
+            # API Base URL: Override for custom endpoints (required for Novita, custom deployments)
+            # Examples:
+            #   - Custom: api_base="https://your-custom-endpoint.com"
         )
         
         # Parse response
