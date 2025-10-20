@@ -7,8 +7,14 @@ Categories: INFO (missing elements), WARNINGS (quality issues), ERRORS (no overl
 
 import os
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List
 from dataclasses import dataclass
+
+# Define absolute paths
+PROJECT_ROOT = Path(__file__).parent.parent
+OUTPUT_DIR = PROJECT_ROOT / "output"
+LOGS_DIR = OUTPUT_DIR / "logs"
 
 
 @dataclass
@@ -25,9 +31,9 @@ class ValidationResult:
 class ThreatValidator:
     """Validates AI-generated threat models against original specifications."""
     
-    def __init__(self, output_dir: str = "./output/logs"):
+    def __init__(self, output_dir: Path = LOGS_DIR):
         """Initialize the threat validator."""
-        os.makedirs(output_dir, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
         self.output_dir = output_dir
     
     def validate_ai_response(self, model: dict, ai_response: List[dict], filename: str) -> ValidationResult:
@@ -117,7 +123,7 @@ class ThreatValidator:
     def _write_log(self, result: ValidationResult, filename: str, ai_response: List[dict]):
         """Write detailed validation log to file."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_path = os.path.join(self.output_dir, f"validation_log_{filename.replace('.json', '')}_{timestamp}.log")
+        log_path = self.output_dir / f"validation_log_{filename.replace('.json', '')}_{timestamp}.log"
         
         content = f"""THREAT VALIDATION LOG
 {'='*60}
@@ -159,7 +165,7 @@ VALIDATION RESULTS:
         content += f"Response IDs: {[item.get('id') for item in ai_response]}\n"
         
         try:
-            with open(log_path, 'w', encoding='utf-8') as f:
+            with open(str(log_path), 'w', encoding='utf-8') as f:
                 f.write(content)
             print(f"Validation log saved to: {log_path}")
         except Exception as e:

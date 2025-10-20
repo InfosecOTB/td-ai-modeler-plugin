@@ -3,11 +3,16 @@
 import json
 import re
 import logging
+from pathlib import Path
 from typing import Dict, List
 import litellm
 from models import AIThreatsResponseList
 
 logger = logging.getLogger(__name__)
+
+# Define absolute path to prompt file
+PROJECT_ROOT = Path(__file__).parent.parent
+PROMPT_FILE = PROJECT_ROOT / "prompt.txt"
 
 
 def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, List[Dict]]:
@@ -17,7 +22,7 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
     
   
     # Prepare prompt
-    prompt_template = open('prompt.txt', 'r', encoding='utf-8').read()
+    prompt_template = PROMPT_FILE.read_text(encoding='utf-8')
     
     system_prompt = prompt_template.format(
         schema_json=json.dumps(schema, indent=2),

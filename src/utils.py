@@ -4,28 +4,30 @@ import json
 import shutil
 import uuid
 import logging
+from pathlib import Path
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
 
-def load_json(path: str) -> dict:
+def load_json(path: Union[str, Path]) -> dict:
     """Load and parse a JSON file."""
     logger.info(f"Loading JSON from {path}")
-    with open(path, 'r') as f:
+    with open(str(path), 'r') as f:
         return json.load(f)
 
 
-def copy_file(src: str, dest: str) -> None:
+def copy_file(src: Union[str, Path], dest: Union[str, Path]) -> None:
     """Copy a file from source to destination."""
     logger.info(f"Copying file from {src} to {dest}")
-    shutil.copy(src, dest)
+    shutil.copy(str(src), str(dest))
 
 
-def update_threats_in_file(file_path: str, threats_data: dict) -> None:
+def update_threats_in_file(file_path: Union[str, Path], threats_data: dict) -> None:
     """Update threat model with AI-generated threats and visual indicators."""
     logger.info(f"Updating threats in file: {file_path}")
     
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(str(file_path), 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     updated_count = 0
@@ -63,7 +65,7 @@ def update_threats_in_file(file_path: str, threats_data: dict) -> None:
                 updated_count += 1
     
     # Save updated model
-    with open(file_path, 'w', encoding='utf-8') as f:
+    with open(str(file_path), 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, separators=(',', ': '), ensure_ascii=False)
     
     logger.info(f"Updated {updated_count} cells with threats")

@@ -3,17 +3,25 @@
 import os
 import logging
 from datetime import datetime
+from pathlib import Path
 from dotenv import load_dotenv
 from utils import load_json, copy_file, update_threats_in_file
 from ai_client import generate_threats
 from validator import ThreatValidator
 
+# Define project root and absolute paths
+PROJECT_ROOT = Path(__file__).parent.parent
+INPUT_DIR = PROJECT_ROOT / "input"
+OUTPUT_DIR = PROJECT_ROOT / "output"
+LOGS_DIR = OUTPUT_DIR / "logs"
+PROMPT_FILE = PROJECT_ROOT / "prompt.txt"
+
 
 def setup_logging():
     """Setup logging for the application."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = f"./output/logs/threat_modeling_{timestamp}.log"
-    os.makedirs("./output/logs", exist_ok=True)
+    log_path = LOGS_DIR / f"threat_modeling_{timestamp}.log"
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
     # ---- Application logger (NOT root) ----
     logger = logging.getLogger("threat_modeling")
@@ -24,7 +32,7 @@ def setup_logging():
     logger.handlers.clear()
 
     # File handler: full detail
-    file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    file_handler = logging.FileHandler(str(log_path), encoding="utf-8")
     file_handler.setLevel(logging.DEBUG)
     file_fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
     file_handler.setFormatter(file_fmt)
@@ -64,9 +72,9 @@ def main():
         raise ValueError("Missing required environment variables")
     
     # Setup file paths
-    schema_path = f'./input/{schema_file}'
-    input_path = f'./input/{model_file}'
-    output_path = f'./output/{model_file}'
+    schema_path = INPUT_DIR / schema_file
+    input_path = INPUT_DIR / model_file
+    output_path = OUTPUT_DIR / model_file
     
     # Load files
     logger.info("Loading files...")
