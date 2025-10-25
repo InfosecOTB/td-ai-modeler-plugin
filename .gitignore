@@ -218,3 +218,8 @@ __marimo__/
 # Except this specific file
 !/output/.gitkeep
 !/output/logs/.gitkeep
+
+/logs/*
+
+# Except this specific file
+!/logs/.gitkeep

@@ -13,8 +13,9 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 - **Smart Filtering**: Automatically skips out-of-scope components
 - **Data Validation**: Built-in Pydantic validation for threat data integrity
 - **Response Validation**: Comprehensive validation of AI responses against original models
-- **Validation Logging**: Timestamped validation logs with detailed coverage reports
+- **Validation Logging**: Timestamped validation logs with detailed coverage reports (DEBUG mode only)
 - **Visual Indicators**: Automatically adds visual cues (red strokes) to components with threats
+- **Command-Line Interface**: Flexible command-line arguments for configuration
 
 ## Quick Start
 
@@ -28,7 +29,7 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd td-ai-modeler
+   cd td-ai-modeler-plugin
    ```
 
 2. **Install dependencies**
@@ -36,34 +37,70 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
    pip install -r requirements.txt
    ```
 
-3. **Configure environment**
+3. **Set up environment variables**
    ```bash
    cp env.example .env
    ```
    
-   Edit `.env` with your configuration:
+   Edit `.env` with your API key:
    ```env
-   # Choose your LLM provider (uncomment one)
-   LLM_MODEL_NAME=openai/gpt-5
-   OPENAI_API_KEY=your_openai_api_key_here
-   
-   # Input files
-   INPUT_THREAT_SCHEMA_JSON=owasp.threat-dragon.schema.V2.json
-   INPUT_THREAT_MODEL_JSON=your-model.json
+   API_KEY=your_api_key_here
    ```
 
-4. **Prepare input files**
-   - The Threat Dragon schema file is already in `./input/`
-   - Place your threat model JSON file in `./input/`
-
-5. **Run the application**
+4. **Run the application**
    ```bash
-   python src/main.py
+   python src/main.py --llm-model openai/gpt-5 --model-file path/to/your-model.json
    ```
 
-6. **Check results**
-   - Updated model with AI-generated threats will be in `./output/`
-   - Validation logs with timestamp will be generated in `./output/logs/`
+5. **Check results**
+   - The input model file is updated directly with AI-generated threats
+   - Validation logs are generated in `./logs/` directory (DEBUG mode only)
+
+## Usage
+
+### Basic Usage
+
+```bash
+python src/main.py --llm-model openai/gpt-5 --model-file path/to/your-model.json
+```
+
+### Available Arguments
+
+| Argument | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `--llm-model` | Yes | - | LLM model identifier (e.g., "openai/gpt-5", "anthropic/claude-sonnet-4-5-20250929") |
+| `--model-file` | Yes | - | Input threat model JSON file path (full path including filename) |
+| `--temperature` | No | 0.1 | LLM temperature for randomness (range: 0-2) |
+| `--response-format` | No | False | Enable structured JSON response format |
+| `--api-base` | No | None | Custom API base URL |
+| `--log-level` | No | INFO | Logging level (INFO or DEBUG) |
+
+### Examples
+
+**Basic usage with OpenAI GPT-5:**
+```bash
+python src/main.py --llm-model openai/gpt-5 --model-file input/my-model.json
+```
+
+**Enable structured JSON format for better response quality:**
+```bash
+python src/main.py --llm-model openai/gpt-5 --model-file input/my-model.json --response-format
+```
+
+**Use custom temperature for more creative responses:**
+```bash
+python src/main.py --llm-model anthropic/claude-sonnet-4-5-20250929 --model-file input/my-model.json --temperature 0.3
+```
+
+**Enable DEBUG logging for detailed logs:**
+```bash
+python src/main.py --llm-model openai/gpt-5 --model-file input/my-model.json --log-level DEBUG
+```
+
+**Use custom API endpoint:**
+```bash
+python src/main.py --llm-model openai/gpt-5 --model-file input/my-model.json --api-base https://your-custom-endpoint.com
+```
 
 ## Configuration
 
@@ -71,74 +108,49 @@ An intelligent threat modeling application that uses Large Language Models (LLMs
 
 | Provider | Model | API Key Variable | Recommended Configuration |
 |----------|-------|------------------|---------------------------|
-| **Anthropic** | `anthropic/claude-sonnet-4-5-20250929` | `ANTHROPIC_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `ANTHROPIC_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **Novita** | `novita/deepseek/deepseek-r1` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=16000` |
-| **Novita** | `novita/qwen/qwen3-coder-480b-a35b-instruct` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **Novita** | `novita/deepseek/deepseek-v3.1-terminus` | `NOVITA_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **Local Ollama** | `ollama/gemma3:27b` | None | `# litellm.enable_json_schema_validation = True`<br>`# temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **xAI** | `xai/grok-4-fast-reasoning-latest` | `XAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **xAI** | `xai/grok-4-latest` | `XAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **OpenAI** | `openai/gpt-5` | `OPENAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **OpenAI** | `openai/gpt-5-mini` | `OPENAI_API_KEY` | `litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
-| **Google** | `gemini/gemini-2.5-pro` | `GOOGLE_API_KEY` | `# litellm.enable_json_schema_validation = True`<br>`temperature = 0.1`<br>`# response_format = AIThreatsResponseList`<br>`max_tokens=24000` |
+| **Anthropic** | `anthropic/claude-sonnet-4-5-20250929` | `API_KEY` | `--temperature 0.1` |
+| **Anthropic** | `anthropic/claude-opus-4-1-20250805` | `API_KEY` | `--temperature 0.1` |
+| **Novita** | `novita/deepseek/deepseek-r1` | `API_KEY` | `--temperature 0.1` |
+| **Novita** | `novita/qwen/qwen3-coder-480b-a35b-instruct` | `API_KEY` | `--temperature 0.1` |
+| **Novita** | `novita/deepseek/deepseek-v3.1-terminus` | `API_KEY` | `--temperature 0.1` |
+| **Local Ollama** | `ollama/gemma3:27b` | None | `--response-format` |
+| **xAI** | `xai/grok-4-fast-reasoning-latest` | `API_KEY` | `--temperature 0.1 --response-format` |
+| **xAI** | `xai/grok-4-latest` | `API_KEY` | `--temperature 0.1 --response-format` |
+| **OpenAI** | `openai/gpt-5` | `API_KEY` | `--temperature 0.1 --response-format` |
+| **OpenAI** | `openai/gpt-5-mini` | `API_KEY` | `--temperature 0.1 --response-format` |
+| **Google** | `gemini/gemini-2.5-pro` | `API_KEY` | `--temperature 0.1` |
 
-#### Recommended Configuration Parameters
+### Configuration Parameters
 
-The recommended configuration settings in the table above include several key parameters that can be adjusted in `src/ai_client.py`:
+- **`--temperature`**: Controls the randomness and creativity of AI responses (0.0 = deterministic, 1.0 = very random). Lower values (0.1) provide more consistent, focused responses ideal for threat modeling.
 
-- **`litellm.enable_json_schema_validation`**: Enables structured JSON validation for supported models. When prefixed with `#`, this parameter should be **commented out** (disabled) as the model doesn't support JSON schema validation.
+- **`--response-format`**: Forces the AI to return structured JSON using Pydantic models. Recommended for OpenAI, xAI, and Ollama models.
 
-- **`temperature`**: Controls the randomness and creativity of AI responses (0.0 = deterministic, 1.0 = very random). Lower values (0.1) provide more consistent, focused responses ideal for threat modeling.
+- **`--api-base`**: Override default API endpoint for custom deployments or local models.
 
-- **`response_format`**: Forces the AI to return structured JSON using Pydantic models. When prefixed with `#`, this parameter should be **commented out** as the model doesn't support structured output.
-
-- **`max_tokens`**: Maximum number of tokens the AI can generate in a single response. Higher values allow for more comprehensive threat descriptions but may increase processing time and costs.
-
-**Important**: Parameters prefixed with `#` in the table should be **commented out** in your configuration, while parameters without `#` should be **uncommented** (active).
+- **`--log-level`**: Set to `DEBUG` for detailed logging and validation reports.
 
 ### Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `LLM_MODEL_NAME` | LLM model identifier | `openai/gpt-5` |
-| `INPUT_THREAT_SCHEMA_JSON` | Threat Dragon schema filename | `owasp.threat-dragon.schema.V2.json` |
-| `INPUT_THREAT_MODEL_JSON` | Input threat model filename | `my-model.json` |
+Set your API key in the `.env` file:
 
-### Advanced Configuration Options
-
-The tool supports several advanced configuration options that can be modified in `src/ai_client.py`:
-
-#### LLM Response Settings
-- **`max_tokens`**: Maximum tokens in response (default: 24000)
-- **`timeout`**: Request timeout in seconds (default: 14400 = 4 hours)
-
-#### JSON Schema Validation
-- **`litellm.enable_json_schema_validation`**: Enable structured JSON validation for supported models (OpenAI, xAI)
-- **`response_format`**: Force structured JSON response format using Pydantic models
-
-#### Custom API Endpoints
-- **`api_base`**: Override default API endpoint for custom deployments or local models
-  - Example: `api_base="https://your-custom-endpoint.com"` for custom deployments
-
-#### LiteLLM Configuration
-- **`litellm.drop_params`**: Remove unsupported parameters (default: True)
+```env
+API_KEY=your_api_key_here
+```
 
 ## Project Structure
 
 ```
-td-ai-modeler/
+td-ai-modeler-plugin/
 ├── src/
 │   ├── main.py              # Main application entry point
 │   ├── ai_client.py         # LLM integration and threat generation
 │   ├── utils.py             # File operations and model updates
 │   ├── models.py            # Pydantic data models
 │   └── validator.py         # AI response validation
-├── input/                   # Input files directory
-│   ├── owasp.threat-dragon.schema.V2.json
-│   └── your-model.json
-├── output/                  # Generated output directory
-│   └── logs/               # Validation logs
+├── schema/                  # Schema directory
+│   └── owasp.threat-dragon.schema.V2.json
+├── logs/                    # Log files directory (DEBUG mode)
 ├── prompt.txt               # AI threat modeling prompt template
 ├── env.example              # Environment configuration template
 ├── requirements.txt         # Python dependencies
@@ -151,9 +163,9 @@ td-ai-modeler/
 2. **AI Threat Generation**: Uses LLM to analyze components and generate threats
 3. **Data Validation**: Ensures all generated threats have required fields
 4. **Response Validation**: Validates AI response completeness and accuracy
-5. **Model Update**: Updates the threat model while preserving original formatting
+5. **Model Update**: Updates the threat model file directly with generated threats
 6. **Visual Updates**: Adds red stroke indicators to components with threats
-7. **Validation Logging**: Generates detailed validation reports with timestamps
+7. **Validation Logging**: Generates detailed validation reports (DEBUG mode only)
 
 ## Validation Features
 
@@ -172,7 +184,7 @@ The tool includes comprehensive validation to ensure AI responses are complete a
 
 ### Validation Outputs
 - **Console Summary**: Real-time validation results with coverage statistics
-- **Detailed Logs**: Timestamped logs in `./output/logs/` directory
+- **Detailed Logs**: Timestamped logs in `./logs/` directory (DEBUG mode only)
 - **Error Reporting**: Specific details about missing elements and invalid IDs
 - **Coverage Metrics**: Percentage of in-scope elements with generated threats
 
@@ -182,7 +194,7 @@ The tool includes comprehensive validation to ensure AI responses are complete a
 - Invalid IDs (out of scope) are warnings, not errors
 - Only completely different IDs are validation errors
 
-Validation runs automatically during threat generation and creates detailed logs in the `./output/logs/` directory.
+Validation runs automatically during threat generation. Enable DEBUG logging for detailed logs.
 
 ## Troubleshooting
 
@@ -190,8 +202,8 @@ Validation runs automatically during threat generation and creates detailed logs
 
 #### LLM Response Errors
 - **Invalid JSON**: The tool automatically attempts to extract JSON from malformed responses
-- **Timeout Issues**: Increase `timeout` value in `ai_client.py` for large models
-- **Token Limits**: Adjust `max_tokens` based on model capabilities
+- **Timeout Issues**: Request timeout is set to 4 hours for large models
+- **Token Limits**: Token count is logged for monitoring
 
 #### Validation Warnings
 - **Missing Elements**: Normal for complex models - elements may be out of scope
@@ -200,15 +212,15 @@ Validation runs automatically during threat generation and creates detailed logs
 - **Invalid IDs**: Verify model structure and element IDs
 
 #### Configuration Issues
-- **API Key Errors**: Ensure correct environment variables are set
+- **API Key Errors**: Ensure `API_KEY` environment variable is set in `.env` file
 - **Model Not Found**: Verify model name format matches provider requirements
-- **Connection Issues**: Check `api_base` URL for custom endpoints
+- **Connection Issues**: Check `--api-base` URL for custom endpoints
 
 ### Performance Optimization
 
 #### For Large Models
-- Use `max_tokens=32000` for models with higher token limits
-- Consider using faster models for initial threat generation
+- Use lower temperature values (0.1) for more consistent responses
+- Enable structured output with `--response-format` for better quality
 
 #### For Local Models (Ollama)
 - Ensure sufficient hardware (GPU, CPU, RAM)
@@ -219,16 +231,16 @@ Validation runs automatically during threat generation and creates detailed logs
 ### Running the Application
 
 ```bash
-# Install development dependencies
+# Install dependencies
 pip install -r requirements.txt
 
 # Run the application
-python src/main.py
+python src/main.py --llm-model openai/gpt-5 --model-file input/your-model.json
 ```
 
 ### Code Structure
 
-- **`main.py`**: Orchestrates the entire threat modeling process
+- **`main.py`**: Orchestrates the entire threat modeling process with argparse configuration
 - **`ai_client.py`**: Handles LLM communication and threat generation
 - **`utils.py`**: File operations and model manipulation utilities
 - **`models.py`**: Pydantic models for threat data validation
@@ -243,10 +255,9 @@ Edit `prompt.txt` to customize threat generation behavior:
 - Adjust output format requirements
 
 #### Adding New LLM Providers
-1. Add provider configuration to `env.example`
+1. Add provider API key to `.env` file
 2. Update provider table in README
 3. Test with sample threat model
-
 
 ## License
 

@@ -2,24 +2,24 @@
 Threat Model Validation Module
 
 Validates AI-generated threat models against original specifications.
-Categories: INFO (missing elements), WARNINGS (quality issues), ERRORS (no overlap).
+Validation categories:
+- INFO: Missing elements (in scope but no threats generated)
+- WARNINGS: Quality issues (empty mitigations, out-of-scope elements)
+- ERRORS: No overlap with model elements
 """
 
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 from dataclasses import dataclass
 
-# Define absolute paths
 PROJECT_ROOT = Path(__file__).parent.parent
-OUTPUT_DIR = PROJECT_ROOT / "output"
-LOGS_DIR = OUTPUT_DIR / "logs"
+LOGS_DIR = PROJECT_ROOT / "logs"
 
 
 @dataclass
 class ValidationResult:
-    """Validation result container for threat model validation."""
+    """Container for validation results and statistics."""
     is_valid: bool
     missing_elements: List[str]
     invalid_ids: List[str]
@@ -31,13 +31,15 @@ class ValidationResult:
 class ThreatValidator:
     """Validates AI-generated threat models against original specifications."""
     
-    def __init__(self, output_dir: Path = LOGS_DIR):
-        """Initialize the threat validator."""
-        output_dir.mkdir(parents=True, exist_ok=True)
-        self.output_dir = output_dir
+    def __init__(self, log_level: str = 'INFO', logs_dir: Path = LOGS_DIR):
+        """Initialize the threat validator with log level and directory."""
+        self.log_level = log_level
+        self.logs_dir = logs_dir
+        if self.log_level.upper() == 'DEBUG':
+            self.logs_dir.mkdir(parents=True, exist_ok=True)
     
     def validate_ai_response(self, model: dict, ai_response: List[dict], filename: str) -> ValidationResult:
-        """Validate AI response against the original threat model."""
+        """Validate AI-generated threats against the original threat model."""
         # Extract in-scope elements that should have threats
         in_scope_elements = self._get_in_scope_elements(model)
         ai_element_ids = {item['id'] for item in ai_response}
@@ -46,7 +48,7 @@ class ThreatValidator:
         missing_elements = [elem_id for elem_id in in_scope_elements if elem_id not in ai_element_ids]
         out_of_scope_elements = [elem_id for elem_id in ai_element_ids if elem_id not in in_scope_elements]
         
-        # Check for completely unrelated responses (no overlap with any model elements)
+        # Check if AI completely failed (no overlap with model at all)
         all_model_elements = self._get_all_model_elements(model)
         has_overlap = len(ai_element_ids.intersection(all_model_elements)) > 0
         completely_unrelated = not has_overlap and len(ai_element_ids) > 0
@@ -57,10 +59,9 @@ class ThreatValidator:
         
         # Collect informational messages
         info = [f"Element {elem_id} is in scope but has no threats" for elem_id in missing_elements]
-        
-        # Calculate validation statistics
         stats = self._calculate_stats(in_scope_elements, ai_element_ids, ai_response)
         
+        # Create validation result
         result = ValidationResult(
             is_valid=not completely_unrelated,
             missing_elements=missing_elements,
@@ -70,11 +71,12 @@ class ThreatValidator:
             stats=stats
         )
         
+        # Write detailed log if in DEBUG mode
         self._write_log(result, filename, ai_response)
         return result
     
     def _get_in_scope_elements(self, model: dict) -> List[str]:
-        """Extract element IDs that should have threats generated."""
+        """Extract element IDs that should have threats generated (in-scope, not trust boundaries)."""
         elements = []
         for diagram in model.get('detail', {}).get('diagrams', []):
             for cell in diagram.get('cells', []):
@@ -83,9 +85,7 @@ class ThreatValidator:
                 cell_shape = cell.get('shape', '')
                 
                 # Include if: in scope, not trust boundary, has ID
-                if (cell_id and 
-                    not cell_data.get('outOfScope', False) and 
-                    cell_shape not in ['trust-boundary-box', 'trust-boundary-curve']):
+                if cell_id and not cell_data.get('outOfScope', False) and cell_shape not in ['trust-boundary-box', 'trust-boundary-curve']:
                     elements.append(cell_id)
         
         return elements
@@ -100,7 +100,7 @@ class ThreatValidator:
         return all_elements
     
     def _check_threat_quality(self, ai_response: List[dict]) -> List[str]:
-        """Check threat quality and return warnings for issues."""
+        """Check threat quality and return warnings for issues (e.g., empty mitigations)."""
         warnings = []
         for item in ai_response:
             for i, threat in enumerate(item.get('threats', [])):
@@ -109,7 +109,7 @@ class ThreatValidator:
         return warnings
     
     def _calculate_stats(self, in_scope_elements: List[str], ai_element_ids: set, ai_response: List[dict]) -> Dict[str, int]:
-        """Calculate validation statistics."""
+        """Calculate validation statistics (coverage, threats count, etc.)."""
         total_threats = sum(len(item.get('threats', [])) for item in ai_response)
         coverage = (len(ai_element_ids) / len(in_scope_elements) * 100) if in_scope_elements else 0
         
@@ -121,9 +121,13 @@ class ThreatValidator:
         }
     
     def _write_log(self, result: ValidationResult, filename: str, ai_response: List[dict]):
-        """Write detailed validation log to file."""
+        """Write detailed validation log to file (only in DEBUG mode)."""
+        if self.log_level.upper() != 'DEBUG':
+            return
+        
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_path = self.output_dir / f"validation_log_{filename.replace('.json', '')}_{timestamp}.log"
+        filename_only = Path(filename).name
+        log_path = self.logs_dir / f"validation_log_{filename_only.replace('.json', '')}_{timestamp}.log"
         
         content = f"""THREAT VALIDATION LOG
 {'='*60}
