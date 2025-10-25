@@ -42,12 +42,18 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
         
         litellm.drop_params = True
 
-        response = litellm.completion(
-            model = model_name,
-            messages = [
+        messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": "Analyze provided Threat Dragon model, generate threats and mitigations for elements and return a valid JSON following the rules."}
-            ],
+            ]
+
+
+
+        logger.info(f"System token count: {litellm.token_counter(model=model_name, messages=messages)}")
+
+        response = litellm.completion(
+            model = model_name,
+            messages = messages,
             
             # Temperature: Controls randomness (0.0=deterministic, 1.0=creative)
             # Lower values (0.1) provide consistent, focused threat modeling results
@@ -55,20 +61,22 @@ def generate_threats(schema: Dict, model: Dict, model_name: str) -> Dict[str, Li
 
             # Response Format: Forces structured JSON output (comment out for Anthropic, Gemini, some Novita models)
             # Requires JSON schema validation support from the LLM provider
-            response_format = AIThreatsResponseList,
+            # response_format = AIThreatsResponseList,
+            response_format = None,
 
             # Timeout: Request timeout in seconds (14400 = 4 hours for large models)
             timeout = 14400,
             
             # Max Tokens: Maximum response length - adjust based on model capabilities
             # Higher values allow more comprehensive threat descriptions
-            max_tokens=24000,
+            api_base = None
 
             # API Base URL: Override for custom endpoints.
             # Examples:
             #   - Custom: api_base="https://your-custom-endpoint.com"
         )
-        
+
+        logger.info(f"Response cost: {response._hidden_params["response_cost"]}")
         # Parse response
         logger.debug(f"/\n\nResponse: {response}")
         try:

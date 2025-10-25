@@ -13,8 +13,15 @@ from validator import ThreatValidator
 PROJECT_ROOT = Path(__file__).parent.parent
 INPUT_DIR = PROJECT_ROOT / "input"
 OUTPUT_DIR = PROJECT_ROOT / "output"
-LOGS_DIR = OUTPUT_DIR / "logs"
+LOGS_DIR = PROJECT_ROOT / "logs"
 PROMPT_FILE = PROJECT_ROOT / "prompt.txt"
+
+    # Load configuration
+load_dotenv()
+llm_model = os.getenv('LLM_MODEL_NAME')
+schema_file = os.getenv('INPUT_THREAT_SCHEMA_JSON')
+model_file = os.getenv('INPUT_THREAT_MODEL_JSON')
+app_log_level = os.getenv('LOG_LEVEL', 'INFO')
 
 
 def setup_logging():
@@ -32,11 +39,12 @@ def setup_logging():
     logger.handlers.clear()
 
     # File handler: full detail
-    file_handler = logging.FileHandler(str(log_path), encoding="utf-8")
-    file_handler.setLevel(logging.DEBUG)
-    file_fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
-    file_handler.setFormatter(file_fmt)
-    logger.addHandler(file_handler)
+    if app_log_level == 'DEBUG':
+        file_handler = logging.FileHandler(str(log_path), encoding="utf-8")
+        file_handler.setLevel(logging.DEBUG)
+        file_fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+        file_handler.setFormatter(file_fmt)
+        logger.addHandler(file_handler)
 
     # Console handler: brief info+
 
@@ -60,11 +68,7 @@ def main():
     logger.info("STARTING AI-POWERED THREAT MODELING TOOL")
     logger.info("="*60)
     
-    # Load configuration
-    load_dotenv()
-    llm_model = os.getenv('LLM_MODEL_NAME')
-    schema_file = os.getenv('INPUT_THREAT_SCHEMA_JSON')
-    model_file = os.getenv('INPUT_THREAT_MODEL_JSON')
+
     
     logger.info(f"Configuration: {llm_model}, {schema_file}, {model_file}")
     
