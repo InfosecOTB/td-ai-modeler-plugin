@@ -1,8 +1,8 @@
-# AI-Powered Threat Modeling Tool
+# AI-Powered Threat Modeling Command-Line Tool
 
 ![td-ai](assets/td-ai-part2.png)
 
-An intelligent threat modeling application that uses Large Language Models (LLMs) to automatically generate security threats and their mitigation proposals for Threat Dragon models.
+A command-line threat modeling application that uses Large Language Models (LLMs) to automatically generate security threats and their mitigation proposals for Threat Dragon models. Configure behavior through flexible command-line arguments.
 
 ## Features
 
@@ -240,7 +240,7 @@ python src/main.py --llm-model openai/gpt-5 --model-file input/your-model.json
 
 ### Code Structure
 
-- **`main.py`**: Orchestrates the entire threat modeling process with argparse configuration
+- **`main.py`**: CLI entry point that orchestrates the entire threat modeling process via command-line arguments
 - **`ai_client.py`**: Handles LLM communication and threat generation
 - **`utils.py`**: File operations and model manipulation utilities
 - **`models.py`**: Pydantic models for threat data validation
