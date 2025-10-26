@@ -45,8 +45,12 @@ TASK
    - For flows, use the flow’s own id and don't use source.cell aor target.cell values.
    - If an element has no id (invalid model), skip it instead of inventing one.
 
-5. Preserve all existing fields and data; do not change or remove existing threats.
-   Only append new threat objects to each applicable element’s data.threats array.
+5. If existing threats and mitigations are present, evaluate them:
+   - If they are correct, include them again in the output unchanged.
+   - If they require adjustments, include the adjusted versions.
+   - If they are incorrect or no longer applicable, exclude them from the output (this effectively removes them).
+   After evaluation, add any new valid threats to the corresponding element in the output.
+   Preserve all other fields and data outside of threats as they are.
 
 6. Output STRICTLY as a JSON object where keys are cell 'id' values, and values are arrays of threat objects. Each threat object must include:
   - title: str (short title).

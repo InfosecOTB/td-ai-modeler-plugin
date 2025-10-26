@@ -6,7 +6,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
-from utils import load_json, update_threats_in_file
+from utils import load_json, update_threats_in_file, handle_user_friendly_error
 from ai_client import generate_threats
 from validator import ThreatValidator
 
@@ -68,7 +68,15 @@ def parse_arguments():
         help='Logging level (default: INFO)'
     )
     
-    return parser.parse_args()
+    args = parser.parse_args()
+    
+    # Validate temperature range
+    if not (0 <= args.temperature <= 2):
+        error_msg = handle_user_friendly_error(ValueError(f"Temperature {args.temperature} is out of range"), "temperature", None)
+        print(error_msg)
+        raise SystemExit(1)
+    
+    return args
 
 
 def setup_logging(log_level: str = 'INFO'):
@@ -127,18 +135,49 @@ def main():
     model_file_path = Path(args.model_file)
     
     if not schema_path.exists():
-        raise FileNotFoundError(f"Schema file not found: {schema_path}")
+        error_msg = handle_user_friendly_error(FileNotFoundError(f"Schema file not found: {schema_path}"), "model_file", logger)
+        logger.error(error_msg)
+        raise SystemExit(1)
     if not model_file_path.exists():
-        raise FileNotFoundError(f"Input file not found: {model_file_path}")
+        error_msg = handle_user_friendly_error(FileNotFoundError(f"Input file not found: {model_file_path}"), "model_file", logger)
+        logger.error(error_msg)
+        raise SystemExit(1)
     
     # Load threat model and schema
     logger.info("Loading files...")
-    schema = load_json(schema_path)
-    model = load_json(model_file_path)
+    try:
+        schema = load_json(schema_path)
+        model = load_json(model_file_path)
+    except Exception as e:
+        error_msg = handle_user_friendly_error(e, "model_file", logger)
+        logger.error(error_msg)
+        raise SystemExit(1)
     
     # Generate threats using AI
     logger.info("Generating threats...")
-    threats_data = generate_threats(schema, model, args.llm_model, api_key, args.temperature, args.response_format, args.api_base)
+    try:
+        threats_data = generate_threats(schema, model, args.llm_model, api_key, args.temperature, args.response_format, args.api_base)
+    except Exception as e:
+        # Determine error type based on the exception
+        error_str = str(e).lower()
+
+        if "litellm.AuthenticationError".lower() in error_str:
+            error_type = "api_key"
+        elif "litellm.NotFoundError".lower() in error_str or "litellm.BadRequestError".lower() in error_str:
+            error_type = "llm_model"
+        elif "temperature" in error_str:
+            error_type = "temperature"
+        elif "litellm.InternalServerError".lower() in error_str:
+            error_type = "api_base"
+        elif "litellm.JSONSchemaValidationError".lower() in error_str:
+            error_type = "response_format"
+        else:
+            error_type = "unknown"
+ 
+        
+        error_msg = handle_user_friendly_error(e, error_type, logger)
+        logger.error(error_msg)
+        raise SystemExit(1)
     
     # Log detailed threat information (DEBUG only)
     logger.debug("AI Response Details:")
